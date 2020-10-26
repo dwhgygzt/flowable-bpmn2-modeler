@@ -1,0 +1,38 @@
+spring:
+  datasource:
+    druid:
+      name: webase
+      url: jdbc:mysql://127.0.0.1:3306/flowable_test?useUnicode=true&characterEncoding=utf-8&serverTimezone=GMT%2B8&useSSL=false&nullCatalogMeansCurrent=true&rewriteBatchedStatements=true
+      username: root
+      password: middol123
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      filters: stat
+      maxActive: 150
+      initialSize: 5
+      maxWait: 60000
+      minIdle: 5
+      timeBetweenEvictionRunsMillis: 60000
+      minEvictableIdleTimeMillis: 300000
+      validationQuery: select 'x'
+      testWhileIdle: true
+      testOnBorrow: false
+      testOnReturn: false
+      poolPreparedStatements: true
+      maxOpenPreparedStatements: 20
+
+flowable:
+  common:
+    app:
+      idm-admin:
+        user: admin
+        password: test
+      #idm-url: http://localhost:8080/flowable-idm
+      idm-url: /modeler/redirect
+      redirect-on-auth-success: /modeler/index
+
+      #关闭定时任务JOB
+  async-executor-activate: false
+
+logging:
+  level:
+    root: info

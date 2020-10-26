@@ -1,0 +1,23 @@
+server:
+  port: 8082
+  tomcat:
+    # tomcat最大线程数，默认为200
+    max-threads: 1000
+    # Tomcat启动初始化的线程数，默认值25
+    min-spare-threads: 30
+    # tomcat的URI编码
+    uri-encoding: UTF-8
+
+
+spring:
+  application:
+    name: middol-workflow-modeler
+  http:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+  profiles:
+    active: devp  # 请不要写成 dev，否则配置类  org.flowable.ui.common.conf.DevelopmentConfiguration 将生效，直接连接本地flowable数据库
+  jackson:
+    time-zone: GMT+8
