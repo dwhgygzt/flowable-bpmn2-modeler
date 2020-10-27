@@ -16,6 +16,7 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -33,10 +34,18 @@ public class CustomRemoteIdmServiceImpl implements RemoteIdmService {
 
     private static final int MAX_USER_SIZE = 100;
 
+    public void deleteTimeOutToken() {
+        List<Token> tokens = idmIdentityService.createTokenQuery().tokenDateBefore(new Date()).list();
+        if (CollectionUtils.isEmpty(tokens)) {
+            return;
+        }
+        tokens.forEach(item -> idmIdentityService.deleteToken(item.getId()));
+    }
+
     @Override
     public RemoteUser authenticateUser(String username, String password) {
         RemoteUser remoteUser = getUser(username);
-        if(password==null || !password.equals(remoteUser.getPassword())) {
+        if (password == null || !password.equals(remoteUser.getPassword())) {
             return null;
         } else {
             return remoteUser;
@@ -45,7 +54,7 @@ public class CustomRemoteIdmServiceImpl implements RemoteIdmService {
 
     @Override
     public RemoteToken getToken(String tokenValue) {
-        Token token =  idmIdentityService.createTokenQuery().tokenId(tokenValue).singleResult();
+        Token token = idmIdentityService.createTokenQuery().tokenId(tokenValue).singleResult();
         if (token == null) {
             throw new NotFoundException();
         } else {
@@ -98,12 +107,12 @@ public class CustomRemoteIdmServiceImpl implements RemoteIdmService {
             userQuery.userFullNameLikeIgnoreCase("%" + filter + "%");
         }
         String tenantId = SecurityUtils.getCurrentUserObject().getTenantId();
-        if(StringUtils.isNotBlank(tenantId)) {
+        if (StringUtils.isNotBlank(tenantId)) {
             userQuery.tenantId(tenantId);
         }
-        List<User> userList = userQuery.listPage(0,MAX_USER_SIZE);
+        List<User> userList = userQuery.listPage(0, MAX_USER_SIZE);
         if (!CollectionUtils.isEmpty(userList)) {
-            for(User user:userList) {
+            for (User user : userList) {
                 remoteUserList.add(getRemoteUser(user));
             }
         }
@@ -112,10 +121,10 @@ public class CustomRemoteIdmServiceImpl implements RemoteIdmService {
 
     @Override
     public List<RemoteUser> findUsersByGroup(String groupId) {
-        List<User> userList= identityService.createUserQuery().memberOfGroup(groupId).list();
+        List<User> userList = identityService.createUserQuery().memberOfGroup(groupId).list();
         List<RemoteUser> remoteUserList = Lists.newArrayList();
-        if(!CollectionUtils.isEmpty(userList)) {
-            for(User user:userList) {
+        if (!CollectionUtils.isEmpty(userList)) {
+            for (User user : userList) {
                 remoteUserList.add(getRemoteUser(user));
             }
         }
@@ -124,29 +133,23 @@ public class CustomRemoteIdmServiceImpl implements RemoteIdmService {
 
     @Override
     public RemoteGroup getGroup(String groupId) {
-       Group group = identityService.createGroupQuery().groupId(groupId).singleResult();
-       return getRemoteGroup(group);
+        Group group = identityService.createGroupQuery().groupId(groupId).singleResult();
+        return getRemoteGroup(group);
     }
 
     @Override
     public List<RemoteGroup> findGroupsByNameFilter(String filter) {
-        List<RemoteGroup> remoteGroupList= Lists.newArrayList();
+        List<RemoteGroup> remoteGroupList = Lists.newArrayList();
         User user = SecurityUtils.getCurrentUserObject();
-        String tenantId = user.getTenantId();
         String sql;
         List<Group> groupList = Lists.newArrayList();
-        if(StringUtils.isNotBlank(filter)) {
-            filter = "%" + filter +"%";
-            if(StringUtils.isBlank(tenantId)) {
-                sql = "select ID_,NAME_,TYPE_ from act_id_group where NAME_ like #{nameLike}";
-                groupList = idmIdentityService.createNativeGroupQuery().sql(sql).parameter("nameLike",filter).listPage(0,MAX_USER_SIZE);
-            } else {
-                sql = "SELECT  t1.ID_, t1.NAME_, t1.TYPE_  FROM act_id_group t1, ext_id_flowable_group_extend t2 WHERE t1.ID_ = t2.flowable_group_id AND t1.NAME_ LIKE #{nameLike} and t2.tenant_id = #{tenantId}";
-                groupList = idmIdentityService.createNativeGroupQuery().sql(sql).parameter("nameLike",filter).parameter("tenantId",tenantId).listPage(0,MAX_USER_SIZE);
-            }
+        if (StringUtils.isNotBlank(filter)) {
+            filter = "%" + filter + "%";
+            sql = "select ID_,NAME_,TYPE_ from act_id_group where NAME_ like #{nameLike}";
+            groupList = idmIdentityService.createNativeGroupQuery().sql(sql).parameter("nameLike", filter).listPage(0, MAX_USER_SIZE);
         }
         if (!CollectionUtils.isEmpty(groupList)) {
-            for(Group group:groupList) {
+            for (Group group : groupList) {
                 remoteGroupList.add(getRemoteGroup(group));
             }
         }
@@ -156,7 +159,7 @@ public class CustomRemoteIdmServiceImpl implements RemoteIdmService {
 
     private RemoteGroup getRemoteGroup(Group group) {
         RemoteGroup remoteGroup = null;
-        if(group != null) {
+        if (group != null) {
             remoteGroup = new RemoteGroup();
             remoteGroup.setType(group.getType());
             remoteGroup.setName(group.getName());

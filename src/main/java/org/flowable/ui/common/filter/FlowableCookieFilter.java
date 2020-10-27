@@ -15,6 +15,7 @@ package org.flowable.ui.common.filter;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.middol.flowable.modeler.service.CustomRemoteIdmServiceImpl;
 import org.flowable.common.engine.api.FlowableException;
 import org.flowable.ui.common.model.RemoteToken;
 import org.flowable.ui.common.model.RemoteUser;
@@ -82,6 +83,15 @@ public class FlowableCookieFilter extends OncePerRequestFilter {
         initIdmAppRedirectUrl();
         initTokenCache();
         initUserCache();
+        initDeleteTimeOutToken();
+    }
+
+    protected void initDeleteTimeOutToken() {
+        logger.info("项目重新启动，删除小于当前时间的token...");
+        if (remoteIdmService instanceof CustomRemoteIdmServiceImpl) {
+            ((CustomRemoteIdmServiceImpl) remoteIdmService).deleteTimeOutToken();
+        }
+        logger.info("项目重新启动，删除小于当前时间的token成功.");
     }
 
     protected void initIdmAppRedirectUrl() {
@@ -242,7 +252,7 @@ public class FlowableCookieFilter extends OncePerRequestFilter {
 
     protected void redirectToLogin(HttpServletRequest request, HttpServletResponse response, String userId) {
         try {
-            LOGGER.debug("过滤路径 FlowableCookieFilter, getRequestURI={}, userId={}", request.getRequestURI(), userId);
+            LOGGER.info("过滤路径 getRequestURI={}, userId={}", request.getRequestURI(), userId);
             if (userId != null) {
                 userCache.invalidate(userId);
             }
@@ -281,7 +291,7 @@ public class FlowableCookieFilter extends OncePerRequestFilter {
                 request.getRequestURI().endsWith(".jpeg") ||
                 request.getRequestURI().endsWith(".tif") ||
                 request.getRequestURI().endsWith(".tiff") ||
-                request.getRequestURI().contains("/modeler/") ||
+                // request.getRequestURI().contains("/modeler/") ||
                 request.getRequestURI().contains("/modeler/redirect") ||
                 request.getRequestURI().contains("/modeler/index") ||
                 request.getRequestURI().contains("/modeler/app/logout");

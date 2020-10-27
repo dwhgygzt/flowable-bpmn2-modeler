@@ -1,18 +1,15 @@
 package com.middol.flowable.modeler.controller;
 
+import com.middol.flowable.modeler.service.MyCurrentUserService;
 import com.middol.flowable.modeler.service.PersistentTokenService;
 import org.flowable.idm.api.Token;
-import org.flowable.ui.common.model.RemoteUser;
-import org.flowable.ui.common.model.UserRepresentation;
 import org.flowable.ui.common.security.CookieConstants;
-import org.flowable.ui.common.security.SecurityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.web.authentication.rememberme.CookieTheftException;
 import org.springframework.security.web.authentication.rememberme.InvalidCookieException;
 import org.springframework.security.web.authentication.rememberme.RememberMeAuthenticationException;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -23,11 +20,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Method;
 import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 
@@ -38,42 +32,24 @@ import java.util.Base64;
 public class IndexController {
 
     @Resource
-    private RemoteAccountResourceController resourceController;
+    private MyCurrentUserService myCurrentUserService;
 
     @Resource
     private PersistentTokenService persistentTokenService;
 
     private static Logger logger = LoggerFactory.getLogger(IndexController.class);
 
-    private void init(HttpServletRequest request, HttpServletResponse response) {
-        UserRepresentation user = resourceController.getAccount();
-        RemoteUser remoteUser = new RemoteUser();
-        remoteUser.setId(user.getId());
-        remoteUser.setFirstName(user.getFirstName());
-        remoteUser.setLastName(user.getLastName());
-        remoteUser.setFullName(user.getFullName());
-        remoteUser.setDisplayName(user.getLastName());
-        remoteUser.setEmail(user.getEmail());
-        remoteUser.setPassword("test");
-        remoteUser.setTenantId(user.getTenantId());
-        remoteUser.setGroups(new ArrayList<>(2));
-        remoteUser.setPrivileges(user.getPrivileges());
-        Token token = persistentTokenService.createToken(remoteUser, request.getRemoteAddr(), request.getHeader("User-Agent"));
-        addCookie(token, request, response);
-        SecurityUtils.assumeUser(remoteUser);
-    }
-
     @RequestMapping(value = "/modeler/index", method = RequestMethod.GET)
     public String modeler(HttpServletRequest request, HttpServletResponse response) {
-        init(request, response);
+        myCurrentUserService.initLoginUser(request, response);
         return "index.html";
     }
 
     @RequestMapping(value = "/modeler/redirect", method = RequestMethod.GET)
     public void redirect(HttpServletRequest request, HttpServletResponse response, String redirectUrl) throws IOException {
-        init(request, response);
-        logger.debug("跳转URL {}", URLDecoder.decode(redirectUrl, "UTF-8"));
-        response.sendRedirect(URLDecoder.decode(redirectUrl, "UTF-8"));
+        String decodeRedirectUrl = URLDecoder.decode(redirectUrl, "UTF-8");
+        logger.debug("跳转URL {}", decodeRedirectUrl);
+        response.sendRedirect(decodeRedirectUrl);
     }
 
     @RequestMapping(value = "/modeler/app/logout", method = RequestMethod.GET)
@@ -98,65 +74,6 @@ public class IndexController {
         res.addCookie(cookie);
 
         return "/modeler/index";
-    }
-
-    protected void addCookie(Token token, HttpServletRequest request, HttpServletResponse response) {
-        setCookie(new String[]{token.getId(), token.getTokenValue()}, request, response);
-    }
-
-    protected void setCookie(String[] tokens, HttpServletRequest request, HttpServletResponse response) {
-        String https = "https";
-        String cookieValue = encodeCookie(tokens);
-        Cookie cookie = new Cookie(CookieConstants.COOKIE_NAME, cookieValue);
-        cookie.setMaxAge(2678400);
-        cookie.setPath("/");
-
-        String xForwardedProtoHeader = request.getHeader("X-Forwarded-Proto");
-        if (xForwardedProtoHeader != null) {
-            cookie.setSecure(xForwardedProtoHeader.equals(https) || request.isSecure());
-        } else {
-            cookie.setSecure(request.isSecure());
-        }
-
-        Method setHttpOnlyMethod = ReflectionUtils.findMethod(Cookie.class, "setHttpOnly", boolean.class);
-        if (setHttpOnlyMethod != null) {
-            ReflectionUtils.invokeMethod(setHttpOnlyMethod, cookie, Boolean.TRUE);
-        } else if (logger.isDebugEnabled()) {
-            logger.debug("Note: Cookie will not be marked as HttpOnly because you are not using Servlet 3.0 (Cookie#setHttpOnly(boolean) was not found).");
-        }
-
-        response.addCookie(cookie);
-    }
-
-    /**
-     * Inverse operation of decodeCookie.
-     *
-     * @param cookieTokens the tokens to be encoded.
-     * @return base64 encoding of the tokens concatenated with the ":" delimiter.
-     */
-    protected String encodeCookie(String[] cookieTokens) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < cookieTokens.length; i++) {
-            try {
-                sb.append(URLEncoder.encode(cookieTokens[i], StandardCharsets.UTF_8.toString()));
-            } catch (UnsupportedEncodingException e) {
-                logger.error(e.getMessage(), e);
-            }
-
-            if (i < cookieTokens.length - 1) {
-                sb.append(":");
-            }
-        }
-
-        String value = sb.toString();
-
-        sb = new StringBuilder(new String(Base64.getEncoder().encode(value.getBytes())));
-        char dh = '=';
-        while (sb.charAt(sb.length() - 1) == dh) {
-            sb.deleteCharAt(sb.length() - 1);
-        }
-
-        return sb.toString();
     }
 
     /**

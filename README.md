@@ -11,6 +11,8 @@
 
 5. 日志级别记得修改 application-devp.yml 中的 logging.level.root 值
 
+6. **如果想修改当前用户，请覆写 MyCurrentUserService 里面的 initLoginUser 方法**
+
 
 ## 二、关于多租户
 
