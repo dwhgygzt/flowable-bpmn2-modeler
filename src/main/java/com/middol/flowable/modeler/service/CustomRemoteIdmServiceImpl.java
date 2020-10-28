@@ -2,6 +2,7 @@ package com.middol.flowable.modeler.service;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.flowable.engine.IdentityService;
 import org.flowable.idm.api.*;
 import org.flowable.ui.common.model.RemoteGroup;
@@ -10,6 +11,8 @@ import org.flowable.ui.common.model.RemoteUser;
 import org.flowable.ui.common.security.SecurityUtils;
 import org.flowable.ui.common.service.exception.NotFoundException;
 import org.flowable.ui.common.service.idm.RemoteIdmService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -26,6 +29,9 @@ import java.util.List;
 @Service
 public class CustomRemoteIdmServiceImpl implements RemoteIdmService {
 
+
+    private static Logger logger = LoggerFactory.getLogger(CustomRemoteIdmServiceImpl.class);
+
     @Resource
     private IdmIdentityService idmIdentityService;
 
@@ -35,7 +41,9 @@ public class CustomRemoteIdmServiceImpl implements RemoteIdmService {
     private static final int MAX_USER_SIZE = 100;
 
     public void deleteTimeOutToken() {
-        List<Token> tokens = idmIdentityService.createTokenQuery().tokenDateBefore(new Date()).list();
+        Date limitDate = DateUtils.addDays(new Date(), -1);
+        logger.info(" ======= 准备删除创建日期在" + limitDate.toString() + "之前的token数据 ======= ");
+        List<Token> tokens = idmIdentityService.createTokenQuery().tokenDateBefore(limitDate).list();
         if (CollectionUtils.isEmpty(tokens)) {
             return;
         }
