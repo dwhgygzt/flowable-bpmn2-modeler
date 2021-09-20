@@ -2,7 +2,6 @@ package com.middol.flowable.modeler.controller;
 
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Lists;
 import org.flowable.ui.modeler.model.ModelRepresentation;
 import org.flowable.ui.modeler.rest.app.ModelResource;
 import org.springframework.http.HttpStatus;
@@ -46,10 +45,10 @@ public class ModelResourceController {
     @RequestMapping(value = "/rest/models/{modelId}/editor/json", method = RequestMethod.POST)
     public ModelRepresentation saveModel(@PathVariable String modelId, @RequestBody MultiValueMap<String, String> values) {
         //始终发布新版本
-        values.put("newversion", Lists.newArrayList("true"));
+        //values.put("newversion", Lists.newArrayList("true"));
         //不允许修改key,key被原始的覆盖。
         ModelRepresentation modelRepresentation = modelResource.getModel(modelId);
-        values.set("key", modelRepresentation.getKey());
+        //values.set("key", modelRepresentation.getKey());
         modelRepresentation = modelResource.saveModel(modelId, values);
         return modelRepresentation;
     }
