@@ -80,7 +80,7 @@
     <springProfile name="devp">
         <!-- Spring日志级别控制  -->
         <logger name="org.springframework" level="INFO"/>
-        <logger name="com.middol" level="DEBUG"/>
+        <logger name="com.guzt" level="DEBUG"/>
         <root level="${LOG_LEVEL}">
             <appender-ref ref="STDOUT"/>
         </root>

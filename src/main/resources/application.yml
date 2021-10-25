@@ -11,7 +11,7 @@ server:
 
 spring:
   application:
-    name: middol-workflow-modeler
+    name: guzt-workflow-modeler
   http:
     encoding:
       charset: UTF-8

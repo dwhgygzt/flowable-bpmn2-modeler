@@ -51,8 +51,8 @@ angular.module('flowableModeler').controller('BpmnEditorDueDatePopupCtrl',
     $scope.taskDueDateOptions = [
         {id: "none", title: $translate.instant('PROPERTY.DUEDATE.TASK-DUE-DATE-OPTIONS.NO-DUEDATE')},
         {id: "expression", title: $translate.instant('PROPERTY.DUEDATE.TASK-DUE-DATE-OPTIONS.EXPRESSION')},
-        {id: "static", title: $translate.instant('PROPERTY.DUEDATE.TASK-DUE-DATE-OPTIONS.STATIC')},
-        {id: "field", title: $translate.instant('PROPERTY.DUEDATE.TASK-DUE-DATE-OPTIONS.FIELD')}
+        {id: "static", title: $translate.instant('PROPERTY.DUEDATE.TASK-DUE-DATE-OPTIONS.STATIC')}
+       // {id: "field", title: $translate.instant('PROPERTY.DUEDATE.TASK-DUE-DATE-OPTIONS.FIELD')}
     ];
     
     if (!$scope.popup.duedate && !$scope.popup.duedateExpression) {

@@ -20354,7 +20354,11 @@ ORYX.Plugins.Save = Clazz.extend({
 	},
 	
 	_hasChanges: function() {
-	  return this.changeDifference !== 0 || (this.facade.getModelMetaData()['new'] && this.facade.getCanvas().getChildShapes().size() > 0);
+		if (typeof(this.facade.getModelMetaData()['new']) == "undefined"){
+			return this.changeDifference !== 0 || (this.facade.getCanvas().getChildShapes().size() > 0);
+		}else {
+			return this.changeDifference !== 0 || (this.facade.getModelMetaData()['new'] && this.facade.getCanvas().getChildShapes().size() > 0);
+		}
 	},
 	
 	onUnLoad: function(){

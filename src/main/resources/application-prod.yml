@@ -23,9 +23,6 @@ spring:
 flowable:
   common:
     app:
-      idm-admin:
-        user: admin
-        password: test
       #idm-url: http://localhost:8080/flowable-idm
       idm-url: /modeler/redirect
       redirect-on-auth-success: /modeler/index
